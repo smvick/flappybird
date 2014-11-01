@@ -22,59 +22,61 @@ function preload() {
 /*
  * Initialises the game. This function is only called once.
  */
+
 var score=0;
 var player;
-
+var pipes;
 
 function create() {
 
+    game.physics.startSystem(Phaser.Physics.ARCADE);
     game.stage.setBackgroundColor("#FF0066");
-
+    pipes=game.add.group();
+    game.time.events.loop(1*Phaser.Timer.SECOND,generate_pipes);
     game.add.text(200, 200, "Welcome to Steve & Eirini's game!!!! :)", {font: "25px TimesNewRoman", fill:"#ffff00"});
-    
     var x = 20;
-    var y = 100;
-    var rightKey=game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
-    var leftKey=game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
-    var upKey=game.input.keyboard.addKey(Phaser.Keyboard.UP);
-    var downKey=game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+    var y = 500;
     player=game.add.sprite(x, y,"playerImg");
-
-    game.input.onDown.add(clickHandler);
-
-    game.input.onDown.add(spaceHandler);
-
+    game.physics.arcade.enable(player);
+    player.anchor.setTo(0.5,0.5);
+    player.checkWorldBounds=true;
+    player.body.velocity.y=-100;
+    player.body.velocity.x=0;
+    player.body.gravity.y=250;
     game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR).onDown.add(spaceHandler);
+    game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR).onDown.add(player_jump);
+}
 
-    leftKey.onDown.add(moveLeft);
+function add_pipe_part(x,y,pipe_part){
+    var pipe=pipes.create(x,y,pipe_part);
+    game.physics.arcade.enable(pipe);
+    pipe.body.velocity.x=-200;
+}
 
-    rightKey.onDown.add(moveRight);
+function generate_pipes() {
+    var gapStart = Math.floor(Math.random() * 5) + 1;
+    var gapSize = Math.floor(Math.random() * 3) + 2;
+    var pipe_offset = 850;
 
-    upKey.onDown.add(moveUp);
-
-    downKey.onDown.add(moveDown);
-
-
-    for(var count3 = 0;count3<=12;count3+=Math.floor(Math.random()*4)+3) {
-        var gapStart = Math.floor(Math.random() * 5) + 1;
-        var gapSize = Math.floor(Math.random()*3)+1;
-        for (var count2 = 0; count2 < gapStart; count2 += 1) {
-            game.add.sprite(100+count3 * 50, count2 * 50, "Pipe")
-        }
-
-        for (var count = gapStart + gapSize; count <= 15; count += 1) {
-            game.add.sprite(100+count3 * 50, count * 50, "Pipe")
-        }
+    for (var count2 = 0; count2 < gapStart; count2 += 1) {
+        add_pipe_part(pipe_offset, count2 * 50, "Pipe")
     }
+
+    for (var count = gapStart + gapSize; count <= 15; count += 1) {
+        add_pipe_part(pipe_offset, count * 50, "Pipe")
+    }
+}
+
+function player_jump(){
+    player.body.velocity.y=-200;
 }
 
 function clickHandler (event) {
 
-    //game.add.sprite(event.x,event.y,"playerImg");
     player.x = event.x;
     player.y = event.y;
     score=score+1;
-    //alert(score);
+
 }
 
 function spaceHandler() {
@@ -92,18 +94,22 @@ function moveLeft(){
 
 function moveUp(){
     player.y -= 10;
+
 }
 
 function moveDown(){
     player.y += 10;
 }
-
+function game_over(){
+    //alert("YOU SUCK! :P :P :P :P :P");
+    location.reload();
+}
 
 /*
  * This function updates the scene. It is called for every new frame.
  */
 function update() {
-
+game.physics.arcade.overlap(player,pipes,game_over);
 }
 
 
